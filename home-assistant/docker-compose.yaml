@@ -1,0 +1,95 @@
+version: '2.1'
+
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:2024.1.0
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+    privileged: true
+    ports:
+      - 8123:8123
+    depends_on:
+      - zigbee2mqtt
+    networks:
+      net:
+        ipv4_address: 182.10.10.10
+  
+  portainer:
+    container_name: portainer
+    image: bigbugcc/portainer-ce
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./subpackage/portainer/data:/data
+    networks:
+      net:
+        ipv4_address: 182.10.10.20
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - ./subpackage/mosquitto/config:/mosquitto/config
+      - ./subpackage/mosquitto/data:/mosquitto/data
+      - ./subpackage/mosquitto/log:/mosquitto/log
+    stdin_open: true
+    tty: true
+    networks:
+      net:
+        ipv4_address: 182.10.10.30
+
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - ./subpackage/zigbee2mqtt/data:/app/data
+      - /run/udev:/run/udev:ro
+    devices:
+      - ${ZIGBEE_PORT}:/dev/ttyACM0 
+    depends_on:
+      - mosquitto
+    networks:
+      net:
+        ipv4_address: 182.10.10.40
+
+  wireguard_client:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard_client
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - /lib/modules:/lib/modules
+      - ./subpackage/wireguard:/config
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    networks: 
+      net:
+        ipv4_address: 182.10.10.2
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 182.10.10.0/24
+         gateway: 182.10.10.1
