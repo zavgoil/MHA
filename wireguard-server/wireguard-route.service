@@ -1,0 +1,12 @@
+[Unit]
+Description=Set custom IP routes after Docker starts
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/ip route add 182.10.10.0/24 via 162.10.10.2
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
