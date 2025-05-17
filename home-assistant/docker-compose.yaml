@@ -86,6 +86,19 @@ services:
       net:
         ipv4_address: 182.10.10.2
 
+  esphome:
+    container_name: esphome
+    image: ghcr.io/esphome/esphome
+    restart: unless-stopped
+    volumes:
+      - ./subpackage/esphome:/config
+      - /etc/localtime:/etc/localtime:ro
+    privileged: true
+    network_mode: host
+    environment:
+      - USERNAME=${ESPHOME_USERNAME}
+      - PASSWORD=${ESPHOME_PASSWORD}
+
 networks:
   net:
     driver: bridge
