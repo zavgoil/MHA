@@ -93,6 +93,7 @@ services:
     volumes:
       - ./subpackage/esphome:/config
       - /etc/localtime:/etc/localtime:ro
+      - /dev:/dev
     privileged: true
     network_mode: host
     environment:
