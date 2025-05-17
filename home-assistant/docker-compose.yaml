@@ -45,6 +45,8 @@ services:
       - ./subpackage/mosquitto/log:/mosquitto/log
     stdin_open: true
     tty: true
+    ports:
+      - 1883:1883
     networks:
       net:
         ipv4_address: 182.10.10.30
