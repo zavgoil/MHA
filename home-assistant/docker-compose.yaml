@@ -64,6 +64,8 @@ services:
       - ${ZIGBEE_PORT}:/dev/ttyACM0 
     depends_on:
       - mosquitto
+    ports:
+      - 8099:8099
     networks:
       net:
         ipv4_address: 182.10.10.40
